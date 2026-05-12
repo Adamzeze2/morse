@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Discord</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#313338;
+color:white;
+height:100vh;
+overflow:hidden;
+}
+
+.login{
+position:fixed;
+inset:0;
+background:#1e1f22;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:1000;
+}
+
+.login-box{
+background:#2b2d31;
+padding:30px;
+border-radius:20px;
+display:flex;
+flex-direction:column;
+gap:15px;
+width:350px;
+}
+
+input,button{
+padding:14px;
+border:none;
+border-radius:10px;
+}
+
+input{
+background:#1e1f22;
+color:white;
+}
+
+button{
+background:#5865f2;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.app{
+display:flex;
+height:100vh;
+}
+
+.servers{
+width:80px;
+background:#1e1f22;
+display:flex;
+justify-content:center;
+padding-top:10px;
+}
+
+.server{
+width:55px;
+height:55px;
+border-radius:50%;
+background:#5865f2;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:25px;
+}
+
+.channels{
+width:240px;
+background:#2b2d31;
+padding:20px;
+}
+
+.channel{
+padding:10px;
+background:#404249;
+border-radius:8px;
+margin-top:10px;
+}
+
+.chat{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.header{
+padding:20px;
+border-bottom:1px solid #1e1f22;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.profile{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.profile img{
+width:40px;
+height:40px;
+border-radius:50%;
+object-fit:cover;
+}
+
+.messages{
+flex:1;
+overflow-y:auto;
+padding:20px;
+}
+
+.message{
+background:#2b2d31;
+padding:10px;
+border-radius:12px;
+margin-bottom:15px;
+display:flex;
+gap:10px;
+}
+
+.message img.avatar{
+width:45px;
+height:45px;
+border-radius:50%;
+object-fit:cover;
+}
+
+.message-image{
+max-width:250px;
+border-radius:10px;
+margin-top:10px;
+}
+
+.bottom{
+padding:20px;
+display:flex;
+gap:10px;
+}
+
+.bottom input[type=text]{
+flex:1;
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginPage">
+<div class="login-box">
+<h2>Créer un compte</h2>
+<input type="text" id="username" placeholder="Nom d'utilisateur">
+<input type="file" id="avatarInput" accept="image/*">
+<button onclick="createAccount()">Créer</button>
+</div>
+</div>
+
+<div class="app">
+<div class="servers">
+<div class="server">💬</div>
+</div>
+
+<div class="channels">
+<h2>Serveur</h2>
+<div class="channel"># général</div>
+</div>
+
+<div class="chat">
+<div class="header">
+<div># général</div>
+
+<div class="profile">
+<img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+<span id="profileName">Utilisateur</span>
+</div>
+</div>
+
+<div class="messages" id="messages"></div>
+
+<div class="bottom">
+<input type="file" id="messageImage" accept="image/*">
+<input type="text" id="messageText" placeholder="Envoyer un message...">
+<button onclick="sendMessage()">Envoyer</button>
+</div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+
+// ===== CONFIG FIREBASE =====
+// REMPLACE PAR TES VRAIES CLÉS FIREBASE
+
+const firebaseConfig = {
+apiKey: "COLLE_TA_CLE",
+authDomain: "TONPROJET.firebaseapp.com",
+databaseURL: "https://TONPROJET-default-rtdb.firebaseio.com",
+projectId: "TONPROJET",
+storageBucket: "TONPROJET.appspot.com",
+messagingSenderId: "000000",
+appId: "APPID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const messagesRef = db.ref('messages');
+
+let currentUser = "";
+let currentAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+// ===== CHARGER LE COMPTE =====
+window.onload = () => {
+const savedUser = localStorage.getItem('username');
+const savedAvatar = localStorage.getItem('avatar');
+
+if(savedUser){
+currentUser = savedUser;
+currentAvatar = savedAvatar;
+
+document.getElementById('profileName').textContent = currentUser;
+document.getElementById('profileAvatar').src = currentAvatar;
+
+document.getElementById('loginPage').style.display = 'none';
+}
+}
+
+// ===== CRÉER COMPTE =====
+function createAccount(){
+const username = document.getElementById('username').value.trim();
+const file = document.getElementById('avatarInput').files[0];
+
+if(username === ''){
+alert('Choisis un pseudo');
+return;
+}
+
+currentUser = username;
+
+if(file){
+const reader = new FileReader();
+reader.onload = function(e){
+currentAvatar = e.target.result;
+saveAccount();
+}
+reader.readAsDataURL(file);
+}else{
+saveAccount();
+}
+}
+
+function saveAccount(){
+localStorage.setItem('username', currentUser);
+localStorage.setItem('avatar', currentAvatar);
+
+document.getElementById('profileName').textContent = currentUser;
+document.getElementById('profileAvatar').src = currentAvatar;
+
+document.getElementById('loginPage').style.display = 'none';
+}
+
+// ===== ENVOYER MESSAGE =====
+function sendMessage(){
+const text = document.getElementById('messageText').value.trim();
+const image = document.getElementById('messageImage').files[0];
+
+if(text === '' && !image) return;
+
+if(image){
+const reader = new FileReader();
+reader.onload = function(e){
+pushMessage(text,e.target.result);
+}
+reader.readAsDataURL(image);
+}else{
+pushMessage(text,null);
+}
+}
+
+function pushMessage(text,image){
+messagesRef.push({
+username: currentUser,
+avatar: currentAvatar,
+text:text,
+image:image,
+time:Date.now()
+});
+
+document.getElementById('messageText').value='';
+document.getElementById('messageImage').value='';
+}
+
+// ===== AFFICHER MESSAGES =====
+messagesRef.on('child_added', snapshot => {
+const data = snapshot.val();
+
+const div = document.createElement('div');
+div.classList.add('message');
+
+let imageHTML = '';
+
+if(data.image){
+imageHTML = `<img class="message-image" src="${data.image}">`;
+}
+
+div.innerHTML = `
+<img class="avatar" src="${data.avatar}">
+
+<div>
+<b>${data.username}</b>
+<div>${data.text}</div>
+${imageHTML}
+</div>
+`;
+
+const messages = document.getElementById('messages');
+messages.appendChild(div);
+messages.scrollTop = messages.scrollHeight;
+});
+
+// ===== ENTRÉE =====
+document.getElementById('messageText').addEventListener('keypress',e=>{
+if(e.key==='Enter') sendMessage();
+});
+
+</script>
+
+</body>
+</html>
