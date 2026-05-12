@@ -6,6 +6,7 @@
 <title>Mini Discord</title>
 
 <style>
+
 *{
 margin:0;
 padding:0;
@@ -137,7 +138,7 @@ display:flex;
 gap:10px;
 }
 
-.message img.avatar{
+.avatar{
 width:45px;
 height:45px;
 border-radius:50%;
@@ -159,20 +160,29 @@ gap:10px;
 .bottom input[type=text]{
 flex:1;
 }
+
 </style>
 </head>
 <body>
 
 <div class="login" id="loginPage">
 <div class="login-box">
+
 <h2>Créer un compte</h2>
+
 <input type="text" id="username" placeholder="Nom d'utilisateur">
+
 <input type="file" id="avatarInput" accept="image/*">
-<button onclick="createAccount()">Créer</button>
+
+<button onclick="createAccount()">
+Créer
+</button>
+
 </div>
 </div>
 
 <div class="app">
+
 <div class="servers">
 <div class="server">💬</div>
 </div>
@@ -183,22 +193,32 @@ flex:1;
 </div>
 
 <div class="chat">
+
 <div class="header">
+
 <div># général</div>
 
 <div class="profile">
 <img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
 <span id="profileName">Utilisateur</span>
 </div>
+
 </div>
 
 <div class="messages" id="messages"></div>
 
 <div class="bottom">
+
 <input type="file" id="messageImage" accept="image/*">
+
 <input type="text" id="messageText" placeholder="Envoyer un message...">
-<button onclick="sendMessage()">Envoyer</button>
+
+<button onclick="sendMessage()">
+Envoyer
+</button>
+
 </div>
+
 </div>
 </div>
 
@@ -207,138 +227,266 @@ flex:1;
 
 <script>
 
-// ===== CONFIG FIREBASE =====
-// REMPLACE PAR TES VRAIES CLÉS FIREBASE
+// ================= FIREBASE =================
+// METS TES VRAIES CLÉS FIREBASE
 
 const firebaseConfig = {
-apiKey: "COLLE_TA_CLE",
+
+apiKey: "TA_CLE",
+
 authDomain: "TONPROJET.firebaseapp.com",
+
 databaseURL: "https://TONPROJET-default-rtdb.firebaseio.com",
+
 projectId: "TONPROJET",
+
 storageBucket: "TONPROJET.appspot.com",
-messagingSenderId: "000000",
+
+messagingSenderId: "123456",
+
 appId: "APPID"
+
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
-const messagesRef = db.ref('messages');
+
+const messagesRef = db.ref("messages");
+
+const usersRef = db.ref("users");
+
+// ================= VARIABLES =================
 
 let currentUser = "";
-let currentAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-// ===== CHARGER LE COMPTE =====
+let currentAvatar =
+"https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+// ================= CHARGER COMPTE =================
+
 window.onload = () => {
-const savedUser = localStorage.getItem('username');
-const savedAvatar = localStorage.getItem('avatar');
+
+const savedUser = localStorage.getItem("username");
+
+const savedAvatar = localStorage.getItem("avatar");
 
 if(savedUser){
+
 currentUser = savedUser;
+
 currentAvatar = savedAvatar;
 
-document.getElementById('profileName').textContent = currentUser;
-document.getElementById('profileAvatar').src = currentAvatar;
+document.getElementById("profileName").textContent =
+currentUser;
 
-document.getElementById('loginPage').style.display = 'none';
-}
+document.getElementById("profileAvatar").src =
+currentAvatar;
+
+document.getElementById("loginPage").style.display =
+"none";
+
 }
 
-// ===== CRÉER COMPTE =====
+};
+
+// ================= CRÉER COMPTE =================
+
 function createAccount(){
-const username = document.getElementById('username').value.trim();
-const file = document.getElementById('avatarInput').files[0];
 
-if(username === ''){
-alert('Choisis un pseudo');
+const username =
+document.getElementById("username").value.trim();
+
+const file =
+document.getElementById("avatarInput").files[0];
+
+if(username === ""){
+
+alert("Choisis un pseudo");
+
 return;
+
+}
+
+// pseudo unique
+
+usersRef.child(username).once("value", snapshot => {
+
+if(snapshot.exists()){
+
+alert("Pseudo déjà utilisé");
+
+return;
+
 }
 
 currentUser = username;
 
 if(file){
+
 const reader = new FileReader();
+
 reader.onload = function(e){
+
 currentAvatar = e.target.result;
+
 saveAccount();
-}
+
+};
+
 reader.readAsDataURL(file);
+
 }else{
+
 saveAccount();
-}
-}
 
-function saveAccount(){
-localStorage.setItem('username', currentUser);
-localStorage.setItem('avatar', currentAvatar);
-
-document.getElementById('profileName').textContent = currentUser;
-document.getElementById('profileAvatar').src = currentAvatar;
-
-document.getElementById('loginPage').style.display = 'none';
 }
 
-// ===== ENVOYER MESSAGE =====
-function sendMessage(){
-const text = document.getElementById('messageText').value.trim();
-const image = document.getElementById('messageImage').files[0];
+usersRef.child(username).set({
 
-if(text === '' && !image) return;
+username: username,
 
-if(image){
-const reader = new FileReader();
-reader.onload = function(e){
-pushMessage(text,e.target.result);
-}
-reader.readAsDataURL(image);
-}else{
-pushMessage(text,null);
-}
-}
+createdAt: Date.now()
 
-function pushMessage(text,image){
-messagesRef.push({
-username: currentUser,
-avatar: currentAvatar,
-text:text,
-image:image,
-time:Date.now()
 });
 
-document.getElementById('messageText').value='';
-document.getElementById('messageImage').value='';
+});
+
 }
 
-// ===== AFFICHER MESSAGES =====
-messagesRef.on('child_added', snapshot => {
+// ================= SAUVEGARDE =================
+
+function saveAccount(){
+
+localStorage.setItem("username", currentUser);
+
+localStorage.setItem("avatar", currentAvatar);
+
+document.getElementById("profileName").textContent =
+currentUser;
+
+document.getElementById("profileAvatar").src =
+currentAvatar;
+
+document.getElementById("loginPage").style.display =
+"none";
+
+}
+
+// ================= ENVOYER MESSAGE =================
+
+function sendMessage(){
+
+const text =
+document.getElementById("messageText").value.trim();
+
+const image =
+document.getElementById("messageImage").files[0];
+
+if(text === "" && !image) return;
+
+if(image){
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+pushMessage(text,e.target.result);
+
+};
+
+reader.readAsDataURL(image);
+
+}else{
+
+pushMessage(text,null);
+
+}
+
+}
+
+// ================= PUSH MESSAGE =================
+
+function pushMessage(text,image){
+
+messagesRef.push({
+
+username: currentUser,
+
+avatar: currentAvatar,
+
+text: text,
+
+image: image,
+
+createdAt: Date.now()
+
+});
+
+document.getElementById("messageText").value = "";
+
+document.getElementById("messageImage").value = "";
+
+}
+
+// ================= TEMPS RÉEL =================
+
+messagesRef.on("child_added", snapshot => {
+
 const data = snapshot.val();
 
-const div = document.createElement('div');
-div.classList.add('message');
+const div = document.createElement("div");
 
-let imageHTML = '';
+div.classList.add("message");
+
+let imageHTML = "";
 
 if(data.image){
-imageHTML = `<img class="message-image" src="${data.image}">`;
+
+imageHTML = `
+<img class="message-image" src="${data.image}">
+`;
+
 }
 
 div.innerHTML = `
+
 <img class="avatar" src="${data.avatar}">
 
 <div>
+
 <b>${data.username}</b>
+
 <div>${data.text}</div>
+
 ${imageHTML}
+
 </div>
+
 `;
 
-const messages = document.getElementById('messages');
-messages.appendChild(div);
-messages.scrollTop = messages.scrollHeight;
+document.getElementById("messages").appendChild(div);
+
+const messages =
+document.getElementById("messages");
+
+messages.scrollTop =
+messages.scrollHeight;
+
 });
 
-// ===== ENTRÉE =====
-document.getElementById('messageText').addEventListener('keypress',e=>{
-if(e.key==='Enter') sendMessage();
+// ================= ENTRÉE =================
+
+document
+.getElementById("messageText")
+.addEventListener("keypress", e => {
+
+if(e.key === "Enter"){
+
+sendMessage();
+
+}
+
 });
 
 </script>
