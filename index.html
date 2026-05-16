@@ -181,20 +181,30 @@
 <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
 
 <script>
-/* ---------- USER ---------- */
-const user = "User-" + Math.floor(Math.random()*9999);
-document.getElementById("user").innerText = user;
+/* =========================
+   SAFE INIT (NO CRASH)
+========================= */
 
-/* ---------- ABLY ---------- */
-const ably = new Ably.Realtime("HDnOHw.Adgk1A:sCfmz3kh8c7OtcfP0_MD7ygkhkSBABUAHfXICyHORIs");
-const channel = ably.channels.get("morse-chat");
+const user = "User-" + Math.floor(Math.random() * 9999);
 
-/* ---------- UI ---------- */
+const userBox = document.getElementById("user");
+if (userBox) userBox.innerText = user;
+
 const messages = document.getElementById("messages");
 const live = document.getElementById("live");
 const key = document.getElementById("key");
 
-/* ---------- MORSE TABLE ---------- */
+/* =========================
+   ABLY INIT
+========================= */
+
+const ably = new Ably.Realtime("TA_CLE_ICI");
+const channel = ably.channels.get("morse-chat");
+
+/* =========================
+   MORSE MAP
+========================= */
+
 const MORSE = {
   ".-":"A","-...":"B","-.-.":"C","-..":"D",".":"E","..-.":"F",
   "--.":"G","....":"H","..":"I",".---":"J","-.-":"K",".-..":"L",
@@ -203,15 +213,23 @@ const MORSE = {
   "-.--":"Y","--..":"Z","/":" "
 };
 
-/* ---------- STATE ---------- */
+/* =========================
+   STATE
+========================= */
+
 let buffer = "";
 let current = "";
 let pressStart = 0;
+
 const DOT_TIME = 80;
 
-/* ---------- RECEIVE ---------- */
+/* =========================
+   RECEIVE MESSAGES
+========================= */
+
 channel.subscribe(msg => {
   const data = msg.data;
+  if (!messages) return;
 
   const div = document.createElement("div");
   div.className = "msg";
@@ -225,11 +243,17 @@ channel.subscribe(msg => {
   messages.prepend(div);
 });
 
-/* ---------- SEND ---------- */
-function send() {
-  if(!buffer) return;
+/* =========================
+   SEND MESSAGE
+========================= */
 
-  const text = buffer.split(" ").map(w => MORSE[w] || "").join("");
+function send() {
+  if (!buffer) return;
+
+  const text = buffer
+    .split(" ")
+    .map(w => MORSE[w] || "")
+    .join("");
 
   channel.publish("msg", {
     user,
@@ -239,33 +263,38 @@ function send() {
 
   buffer = "";
   current = "";
-  live.innerText = "En cours : ";
+
+  if (live) live.innerText = "En cours : ";
 }
 
-/* ---------- MORSE BUTTON ---------- */
-key.addEventListener("pointerdown", () => {
-  pressStart = Date.now();
-});
+/* =========================
+   MORSE BUTTON
+========================= */
 
-key.addEventListener("pointerup", () => {
-  const duration = Date.now() - pressStart;
+if (key) {
+  key.addEventListener("pointerdown", () => {
+    pressStart = Date.now();
+  });
 
-  if(duration < DOT_TIME * 2) {
-    current += ".";
-  } else {
-    current += "-";
-  }
+  key.addEventListener("pointerup", () => {
+    const duration = Date.now() - pressStart;
 
-  live.innerText = "En cours : " + current;
+    if (duration < DOT_TIME * 2) {
+      current += ".";
+    } else {
+      current += "-";
+    }
 
-  clearTimeout(window._t);
-  window._t = setTimeout(() => {
-    buffer += current + " ";
-    current = "";
-    send();
-  }, 800);
-});
+    if (live) live.innerText = "En cours : " + current;
+
+    clearTimeout(window._morseTimer);
+    window._morseTimer = setTimeout(() => {
+      buffer += current + " ";
+      current = "";
+      send();
+    }, 800);
+  });
+}
 </script>
-
 </body>
 </html>
