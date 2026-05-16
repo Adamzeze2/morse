@@ -1,494 +1,409 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Discord</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Morse Live Chat</title>
 
-<style>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+    body {
+      background: #0f172a;
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-body{
-background:#313338;
-color:white;
-height:100vh;
-overflow:hidden;
-}
+    header {
+      background: #111827;
+      padding: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 
-.login{
-position:fixed;
-inset:0;
-background:#1e1f22;
-display:flex;
-justify-content:center;
-align-items:center;
-z-index:1000;
-}
+    h1 {
+      font-size: 1.4rem;
+    }
 
-.login-box{
-background:#2b2d31;
-padding:30px;
-border-radius:20px;
-display:flex;
-flex-direction:column;
-gap:15px;
-width:350px;
-}
+    .user {
+      color: #93c5fd;
+      background: rgba(255,255,255,0.08);
+      padding: 10px 14px;
+      border-radius: 12px;
+    }
 
-input,button{
-padding:14px;
-border:none;
-border-radius:10px;
-}
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-input{
-background:#1e1f22;
-color:white;
-}
+    .message {
+      background: rgba(255,255,255,0.06);
+      padding: 14px;
+      border-radius: 14px;
+      animation: fade .2s ease;
+    }
 
-button{
-background:#5865f2;
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
+    .top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
 
-.app{
-display:flex;
-height:100vh;
-}
+    .name {
+      color: #60a5fa;
+      font-weight: bold;
+    }
 
-.servers{
-width:80px;
-background:#1e1f22;
-display:flex;
-justify-content:center;
-padding-top:10px;
-}
+    .time {
+      color: #94a3b8;
+      font-size: .85rem;
+    }
 
-.server{
-width:55px;
-height:55px;
-border-radius:50%;
-background:#5865f2;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:25px;
-}
+    .morse {
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
 
-.channels{
-width:240px;
-background:#2b2d31;
-padding:20px;
-}
+    .translation {
+      color: #cbd5e1;
+      word-break: break-word;
+    }
 
-.channel{
-padding:10px;
-background:#404249;
-border-radius:8px;
-margin-top:10px;
-}
+    .bottom {
+      background: #111827;
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
 
-.chat{
-flex:1;
-display:flex;
-flex-direction:column;
-}
+    textarea {
+      flex: 1;
+      resize: none;
+      height: 80px;
+      border: none;
+      outline: none;
+      border-radius: 12px;
+      background: #1e293b;
+      color: white;
+      padding: 12px;
+      font-size: 1rem;
+    }
 
-.header{
-padding:20px;
-border-bottom:1px solid #1e1f22;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-.profile{
-display:flex;
-align-items:center;
-gap:10px;
-}
+    button {
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: .2s;
+    }
 
-.profile img{
-width:40px;
-height:40px;
-border-radius:50%;
-object-fit:cover;
-}
+    #convertBtn {
+      background: #f59e0b;
+      color: black;
+    }
 
-.messages{
-flex:1;
-overflow-y:auto;
-padding:20px;
-}
+    #sendBtn {
+      background: #2563eb;
+      color: white;
+    }
 
-.message{
-background:#2b2d31;
-padding:10px;
-border-radius:12px;
-margin-bottom:15px;
-display:flex;
-gap:10px;
-}
+    button:hover {
+      transform: scale(1.03);
+    }
 
-.avatar{
-width:45px;
-height:45px;
-border-radius:50%;
-object-fit:cover;
-}
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-.message-image{
-max-width:250px;
-border-radius:10px;
-margin-top:10px;
-}
+    @media(max-width:700px) {
+      .bottom {
+        flex-direction: column;
+      }
 
-.bottom{
-padding:20px;
-display:flex;
-gap:10px;
-}
-
-.bottom input[type=text]{
-flex:1;
-}
-
-</style>
+      .buttons {
+        flex-direction: row;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<div class="login" id="loginPage">
-<div class="login-box">
+<header>
+  <h1>📡 Morse Live Chat</h1>
+  <div class="user">
+    Connecté : <span id="username"></span>
+  </div>
+</header>
 
-<h2>Créer un compte</h2>
-
-<input type="text" id="username" placeholder="Nom d'utilisateur">
-
-<input type="file" id="avatarInput" accept="image/*">
-
-<button onclick="createAccount()">
-Créer
-</button>
-
-</div>
-</div>
-
-<div class="app">
-
-<div class="servers">
-<div class="server">💬</div>
-</div>
-
-<div class="channels">
-<h2>Serveur</h2>
-<div class="channel"># général</div>
-</div>
-
-<div class="chat">
-
-<div class="header">
-
-<div># général</div>
-
-<div class="profile">
-<img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-<span id="profileName">Utilisateur</span>
-</div>
-
-</div>
-
-<div class="messages" id="messages"></div>
+<div id="messages"></div>
 
 <div class="bottom">
+  <textarea id="input" placeholder="Écris un message..."></textarea>
 
-<input type="file" id="messageImage" accept="image/*">
-
-<input type="text" id="messageText" placeholder="Envoyer un message...">
-
-<button onclick="sendMessage()">
-Envoyer
-</button>
-
+  <div class="buttons">
+    <button id="tapBtn">🎙️ Clé Morse</button>
+    <button id="convertBtn">Convertir Morse</button>
+    <button id="sendBtn">Envoyer</button>
+  </div>
 </div>
 
-</div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<!-- Gun.js -->
+<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 
 <script>
+  // =========================
+  // Pseudo aléatoire
+  // =========================
+  const adjectives = [
+    'Silent', 'Dark', 'Rapid', 'Blue', 'Cyber',
+    'Quantum', 'Hidden', 'Electric', 'Frozen', 'Ghost'
+  ];
+
+  const nouns = [
+    'Fox', 'Signal', 'Wolf', 'Falcon', 'Echo',
+    'Wave', 'Cipher', 'Comet', 'Operator', 'Hunter'
+  ];
+
+  function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  const username = `${random(adjectives)}${random(nouns)}${Math.floor(Math.random()*9999)}`;
+
+  document.getElementById('username').textContent = username;
+
+  // =========================
+  // Morse
+  // =========================
+  const MORSE = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.',
+    F: '..-.', G: '--.', H: '....', I: '..', J: '.---',
+    K: '-.-', L: '.-..', M: '--', N: '-.', O: '---',
+    P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-',
+    U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--',
+    Z: '--..',
+    0: '-----', 1: '.----', 2: '..---', 3: '...--',
+    4: '....-', 5: '.....', 6: '-....', 7: '--...',
+    8: '---..', 9: '----.',
+    ' ': '/'
+  };
+
+  const reverseMorse = Object.fromEntries(
+    Object.entries(MORSE).map(([k,v]) => [v,k])
+  );
+
+  function textToMorse(text) {
+    return text.toUpperCase().split('').map(c => MORSE[c] || '').join(' ');
+  }
+
+  function morseToText(morse) {
+    return morse
+      .split(' ')
+      .map(code => reverseMorse[code] || '')
+      .join('')
+      .replaceAll('/', ' ');
+  }
+
+  // =========================
+  // Gun.js realtime
+  // =========================
+  const gun = Gun([
+    'https://gun-manhattan.herokuapp.com/gun',
+    'https://peer.wallie.io/gun'
+  ]);
+
+  const chat = gun.get('global-morse-chat-room');
+
+  // =========================
+  // UI
+  // =========================
+  const messages = document.getElementById('messages');
+  const input = document.getElementById('input');
+  const sendBtn = document.getElementById('sendBtn');
+  const convertBtn = document.getElementById('convertBtn');
+  const tapBtn = document.getElementById('tapBtn');
+
+  convertBtn.onclick = () => {
+    input.value = textToMorse(input.value);
+  };
+
+  // =========================
+  // Clé Morse 15 WPM
+  // =========================
+  const DOT_DURATION = 80; // ~15 WPM
+
+  let pressStart = 0;
+  let morseBuffer = '';
+  let letterTimeout;
+  let wordTimeout;
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function startTone() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.frequency.value = 650;
+    osc.type = 'sine';
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+
+    return { osc, gain };
+  }
 
-// ================= FIREBASE =================
-// METS TES VRAIES CLÉS FIREBASE
+  let currentTone = null;
 
-const firebaseConfig = {
+  function handlePressStart() {
+    pressStart = Date.now();
+    currentTone = startTone();
+    tapBtn.style.transform = 'scale(0.95)';
+  }
 
-apiKey: "TA_CLE",
+  function handlePressEnd() {
+    if (!pressStart) return;
 
-authDomain: "TONPROJET.firebaseapp.com",
+    const duration = Date.now() - pressStart;
 
-databaseURL: "https://TONPROJET-default-rtdb.firebaseio.com",
-
-projectId: "TONPROJET",
-
-storageBucket: "TONPROJET.appspot.com",
-
-messagingSenderId: "123456",
-
-appId: "APPID"
-
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-
-const messagesRef = db.ref("messages");
-
-const usersRef = db.ref("users");
-
-// ================= VARIABLES =================
-
-let currentUser = "";
-
-let currentAvatar =
-"https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
-// ================= CHARGER COMPTE =================
-
-window.onload = () => {
-
-const savedUser = localStorage.getItem("username");
-
-const savedAvatar = localStorage.getItem("avatar");
-
-if(savedUser){
-
-currentUser = savedUser;
-
-currentAvatar = savedAvatar;
-
-document.getElementById("profileName").textContent =
-currentUser;
-
-document.getElementById("profileAvatar").src =
-currentAvatar;
-
-document.getElementById("loginPage").style.display =
-"none";
-
-}
-
-};
-
-// ================= CRÉER COMPTE =================
-
-function createAccount(){
-
-const username =
-document.getElementById("username").value.trim();
-
-const file =
-document.getElementById("avatarInput").files[0];
-
-if(username === ""){
-
-alert("Choisis un pseudo");
-
-return;
-
-}
-
-// pseudo unique
-
-usersRef.child(username).once("value", snapshot => {
-
-if(snapshot.exists()){
-
-alert("Pseudo déjà utilisé");
-
-return;
-
-}
-
-currentUser = username;
-
-if(file){
-
-const reader = new FileReader();
-
-reader.onload = function(e){
-
-currentAvatar = e.target.result;
-
-saveAccount();
-
-};
-
-reader.readAsDataURL(file);
-
-}else{
-
-saveAccount();
-
-}
-
-usersRef.child(username).set({
-
-username: username,
-
-createdAt: Date.now()
-
-});
-
-});
-
-}
-
-// ================= SAUVEGARDE =================
-
-function saveAccount(){
-
-localStorage.setItem("username", currentUser);
-
-localStorage.setItem("avatar", currentAvatar);
-
-document.getElementById("profileName").textContent =
-currentUser;
-
-document.getElementById("profileAvatar").src =
-currentAvatar;
-
-document.getElementById("loginPage").style.display =
-"none";
-
-}
-
-// ================= ENVOYER MESSAGE =================
-
-function sendMessage(){
-
-const text =
-document.getElementById("messageText").value.trim();
-
-const image =
-document.getElementById("messageImage").files[0];
-
-if(text === "" && !image) return;
-
-if(image){
-
-const reader = new FileReader();
-
-reader.onload = function(e){
-
-pushMessage(text,e.target.result);
-
-};
-
-reader.readAsDataURL(image);
-
-}else{
-
-pushMessage(text,null);
-
-}
-
-}
-
-// ================= PUSH MESSAGE =================
-
-function pushMessage(text,image){
-
-messagesRef.push({
-
-username: currentUser,
-
-avatar: currentAvatar,
-
-text: text,
-
-image: image,
-
-createdAt: Date.now()
-
-});
-
-document.getElementById("messageText").value = "";
-
-document.getElementById("messageImage").value = "";
-
-}
-
-// ================= TEMPS RÉEL =================
-
-messagesRef.on("child_added", snapshot => {
-
-const data = snapshot.val();
-
-const div = document.createElement("div");
-
-div.classList.add("message");
-
-let imageHTML = "";
-
-if(data.image){
-
-imageHTML = `
-<img class="message-image" src="${data.image}">
-`;
-
-}
-
-div.innerHTML = `
-
-<img class="avatar" src="${data.avatar}">
-
-<div>
-
-<b>${data.username}</b>
-
-<div>${data.text}</div>
-
-${imageHTML}
-
-</div>
-
-`;
-
-document.getElementById("messages").appendChild(div);
-
-const messages =
-document.getElementById("messages");
-
-messages.scrollTop =
-messages.scrollHeight;
-
-});
-
-// ================= ENTRÉE =================
-
-document
-.getElementById("messageText")
-.addEventListener("keypress", e => {
-
-if(e.key === "Enter"){
-
-sendMessage();
-
-}
-
-});
-
+    currentTone.osc.stop();
+    currentTone = null;
+
+    tapBtn.style.transform = 'scale(1)';
+
+    if (duration < DOT_DURATION * 2) {
+      morseBuffer += '.';
+      input.value += '.';
+    } else {
+      morseBuffer += '-';
+      input.value += '-';
+    }
+
+    clearTimeout(letterTimeout);
+    clearTimeout(wordTimeout);
+
+    letterTimeout = setTimeout(() => {
+      input.value += ' ';
+      morseBuffer = '';
+    }, DOT_DURATION * 3);
+
+    wordTimeout = setTimeout(() => {
+      input.value += ' / ';
+    }, DOT_DURATION * 7);
+
+    pressStart = 0;
+  }
+
+  tapBtn.addEventListener('mousedown', handlePressStart);
+  tapBtn.addEventListener('mouseup', handlePressEnd);
+  tapBtn.addEventListener('mouseleave', handlePressEnd);
+
+  tapBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    handlePressStart();
+  });
+
+  tapBtn.addEventListener('touchend', e => {
+    e.preventDefault();
+    handlePressEnd();
+  });
+
+  sendBtn.onclick = sendMessage;
+
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function sendMessage() {
+    const morse = input.value.trim();
+
+    if(!morse) return;
+
+    chat.set({
+      username,
+      morse,
+      translated: morseToText(morse),
+      createdAt: Date.now()
+    });
+
+    input.value = '';
+  }
+
+  // =========================
+  // Réception messages
+  // =========================
+  const seen = new Set();
+
+  chat.map().on((data, id) => {
+    if(!data || seen.has(id)) return;
+
+    seen.add(id);
+
+    const div = document.createElement('div');
+    div.className = 'message';
+
+    const date = new Date(data.createdAt || Date.now());
+
+    div.innerHTML = `
+      <div class="top">
+        <div class="name">${escapeHTML(data.username)}</div>
+        <div class="time">${date.toLocaleTimeString()}</div>
+      </div>
+
+      <div class="morse">${escapeHTML(data.morse)}</div>
+      <div class="translation">${escapeHTML(data.translated)}</div>
+    `;
+
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  // =========================
+  // Anti XSS
+  // =========================
+  function escapeHTML(str='') {
+    return str
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 </script>
 
 </body>
