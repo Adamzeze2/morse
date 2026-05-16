@@ -178,22 +178,38 @@
   </div>
 </div>
 
-<!-- Gun.js -->
 <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
 
 <script>
+/* ---------- USER ---------- */
 const user = "User-" + Math.floor(Math.random()*9999);
 document.getElementById("user").innerText = user;
 
-const live = document.getElementById("live");
-const messages = document.getElementById("messages");
-const key = document.getElementById("key");
-
-/* ABLY */
+/* ---------- ABLY ---------- */
 const ably = new Ably.Realtime("HDnOHw.Adgk1A:sCfmz3kh8c7OtcfP0_MD7ygkhkSBABUAHfXICyHORIs");
 const channel = ably.channels.get("morse-chat");
 
-/* RECEIVE */
+/* ---------- UI ---------- */
+const messages = document.getElementById("messages");
+const live = document.getElementById("live");
+const key = document.getElementById("key");
+
+/* ---------- MORSE TABLE ---------- */
+const MORSE = {
+  ".-":"A","-...":"B","-.-.":"C","-..":"D",".":"E","..-.":"F",
+  "--.":"G","....":"H","..":"I",".---":"J","-.-":"K",".-..":"L",
+  "--":"M","-.":"N","---":"O",".--.":"P","--.-":"Q",".-.":"R",
+  "...":"S","-":"T","..-":"U","...-":"V",".--":"W","-..-":"X",
+  "-.--":"Y","--..":"Z","/":" "
+};
+
+/* ---------- STATE ---------- */
+let buffer = "";
+let current = "";
+let pressStart = 0;
+const DOT_TIME = 80;
+
+/* ---------- RECEIVE ---------- */
 channel.subscribe(msg => {
   const data = msg.data;
 
@@ -209,21 +225,7 @@ channel.subscribe(msg => {
   messages.prepend(div);
 });
 
-/* MORSE */
-const MORSE = {
-  ".-":"A","-...":"B","-.-.":"C","-..":"D",".":"E","..-.":"F",
-  "--.":"G","....":"H","..":"I",".---":"J","-.-":"K",".-..":"L",
-  "--":"M","-.":"N","---":"O",".--.":"P","--.-":"Q",".-.":"R",
-  "...":"S","-":"T","..-":"U","...-":"V",".--":"W","-..-":"X",
-  "-.--":"Y","--..":"Z","/":" "
-};
-
-let buffer = "";
-let current = "";
-let pressStart = 0;
-const DOT_TIME = 80;
-
-/* SEND */
+/* ---------- SEND ---------- */
 function send() {
   if(!buffer) return;
 
@@ -240,7 +242,7 @@ function send() {
   live.innerText = "En cours : ";
 }
 
-/* KEY */
+/* ---------- MORSE BUTTON ---------- */
 key.addEventListener("pointerdown", () => {
   pressStart = Date.now();
 });
@@ -248,13 +250,16 @@ key.addEventListener("pointerdown", () => {
 key.addEventListener("pointerup", () => {
   const duration = Date.now() - pressStart;
 
-  if(duration < DOT_TIME * 2) current += ".";
-  else current += "-";
+  if(duration < DOT_TIME * 2) {
+    current += ".";
+  } else {
+    current += "-";
+  }
 
   live.innerText = "En cours : " + current;
 
-  clearTimeout(window.t);
-  window.t = setTimeout(() => {
+  clearTimeout(window._t);
+  window._t = setTimeout(() => {
     buffer += current + " ";
     current = "";
     send();
